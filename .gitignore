@@ -1,0 +1,107 @@
+# ==========================================
+# Python & Віртуальні середовища (AI / Backend)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+miniconda3/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# Computer Vision & Machine Learning (YOLO)
+# ==========================================
+# Ваги нейромереж (щоб не забивати репозиторій)
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.pb
+*.h5
+
+# Робочі папки Ultralytics YOLO (логи та тестові детекції)
+runs/
+
+# Датасети та великі медіафайли
+datasets/
+data/
+*.mp4
+*.avi
+*.mkv
+
+# ==========================================
+# C/C++ & Embedded (STM32, ESP32, PlatformIO)
+# ==========================================
+# Об'єктні файли та кеш компілятора
+*.o
+*.obj
+*.gch
+*.pch
+
+# Скомпільовані бібліотеки
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Виконувані файли та прошивки мікроконтролерів
+*.exe
+*.out
+*.elf
+*.hex
+*.bin
+*.map
+
+# Системи збірки (CMake / Make)
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+build/
+Debug/
+Release/
+out/
+
+# PlatformIO (критично важливо ігнорувати!)
+.pio/
+.piolibdeps/
+
+# ==========================================
+# Logs & Databases
+# ==========================================
+*.log
+*.sqlite3
+
+# ==========================================
+# Налаштування IDE та ОС
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks (для експериментів)
+.ipynb_checkpoints/
