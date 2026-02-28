@@ -6,13 +6,14 @@ from fastapi.responses import HTMLResponse
 from ultralytics import YOLO
 import asyncio
 from fastapi.responses import StreamingResponse
+import time
 
 app = FastAPI()
 
 # --- НАЛАШТУВАННЯ ---
-CAM_URL = "http://192.168.0.114"
+CAM_URL = "http://192.168.0.116"
 DEVKIT_IP = "192.168.0.113"
-model = YOLO('yolov8n.pt') 
+model = YOLO('yolov8n_int8_openvino_model', task='detect') 
 current_angle = 90
 
 # HTML інтерфейс (зручний для тачскріна телефону)
@@ -57,19 +58,28 @@ HTML_CONTENT = """
 
 async def video_generator():
     cap = cv2.VideoCapture(CAM_URL, cv2.CAP_FFMPEG)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) 
+    
     while True:
         success, frame = cap.read()
         if not success:
-            print("Помилка: Не вдалося отримати кадр з камери. Перевіряю з'єднання...")
-            cap.release()
-            await asyncio.sleep(2) # Чекаємо перед повторною спробою
-            cap = cv2.VideoCapture(CAM_URL, cv2.CAP_FFMPEG)
+            await asyncio.sleep(0.1)
             continue
         
-        # YOLO розпізнавання
+        # Засікаємо час ПЕРЕД інференсом
+        start_time = time.perf_counter()
+        
+        # YOLO розпізнавання (ONNX)
         results = model(frame, stream=True, verbose=False)
         for r in results:
             frame = r.plot() 
+            
+        # Засікаємо час ПІСЛЯ інференсу
+        end_time = time.perf_counter()
+        
+        # Рахуємо мілісекунди і виводимо в термінал
+        inference_ms = (end_time - start_time) * 1000
+        print(f"Інференс кадру: {inference_ms:.1f} мс")
 
         _, buffer = cv2.imencode('.jpg', frame)
         yield (b'--frame\r\n'
