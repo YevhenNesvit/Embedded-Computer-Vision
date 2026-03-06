@@ -10,11 +10,11 @@ const char* password = SECRET_WIFI_PASS;
 WebServer server(80);
 
 void setup() {
-  // Serial - для виводу інформації в монітор порту на ПК (для дебагу)
+  // Serial - для виводу інформації в монітор порту на ПК
   Serial.begin(115200);
   
-  // Serial2 - для спілкування з STM32! 
-  // На ESP32 пін TX2 - це зазвичай GPIO 17
+  // Serial2 - для спілкування з STM32
+  // На ESP32 пін TX2 - це зазвичай GPIO 17. З'єднуємо його з D2 на STM32.
   Serial2.begin(115200); 
   delay(10);
 
@@ -28,18 +28,22 @@ void setup() {
   Serial.print("IP ESP32 DevKit: ");
   Serial.println(WiFi.localIP());
 
-  // Чекаємо запит: http://ІП_АДРЕСА/pan?val=Кут
-  server.on("/pan", []() {
-    if (server.hasArg("val")) {
-      String angle = server.arg("val");
+  // НОВИЙ ЗАПИТ: http://ІП_АДРЕСА/move?x=КутX&y=КутY
+  server.on("/move", []() {
+    if (server.hasArg("x") && server.hasArg("y")) {
+      String angleX = server.arg("x");
+      String angleY = server.arg("y");
       
-      // Відправляємо число на STM32 і додаємо символ кінця рядка (\n)
-      Serial2.println(angle); 
+      // Склеюємо координати через кому
+      String command = angleX + "," + angleY;
       
-      Serial.println("Відправлено на STM32: " + angle);
-      server.send(200, "text/plain", "OK: " + angle);
+      // Відправляємо рядок "X,Y\n" на STM32
+      Serial2.println(command); 
+      
+      Serial.println("Відправлено на STM32: " + command);
+      server.send(200, "text/plain", "OK: " + command);
     } else {
-      server.send(400, "text/plain", "Error: No value");
+      server.send(400, "text/plain", "Error: Missing x or y");
     }
   });
 
