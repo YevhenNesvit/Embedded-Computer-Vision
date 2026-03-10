@@ -1,0 +1,80 @@
+annotated-doc @ file:///home/task_176337172097079/conda-bld/annotated-doc_1763372658056/work
+annotated-types @ file:///home/task_176174488330724/conda-bld/annotated-types_1761744897939/work
+anyio @ file:///home/task_175862240045110/conda-bld/anyio_1758622417185/work
+brotlicffi @ file:///croot/brotlicffi_1736182461069/work
+certifi @ file:///home/task_176765898832781/croot/certifi_1767659141017/work/certifi
+cffi @ file:///croot/cffi_1736182485317/work
+charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
+click @ file:///home/task_176433223059444/conda-bld/click_1764332278448/work
+contourpy==1.3.3
+cryptography @ file:///home/task_176009235682318/conda-bld/cryptography-split_1760092601571/work
+cycler==0.12.1
+dnspython @ file:///croot/dnspython_1703096966733/work
+email-validator @ file:///home/task_175861019857171/conda-bld/email-validator-meta_1758610243899/work
+fastapi @ file:///home/task_176840086091893/croot/fastapi-split_1768401102079/work
+fastapi-cli @ file:///home/task_176837295497578/croot/fastapi-cli_1768373419919/work
+filelock @ file:///croot/filelock_1744281381737/work
+fonttools==4.61.1
+gmpy2 @ file:///croot/gmpy2_1738085463648/work
+h11 @ file:///home/task_176193127070316/conda-bld/h11_1761931282547/work
+httpcore @ file:///croot/httpcore_1748526048470/work
+httptools @ file:///home/task_176363474410561/conda-bld/httptools_1763634758019/work
+httpx @ file:///home/task_176044729235861/conda-bld/httpx_1760447346003/work
+idna @ file:///croot/idna_1714398848350/work
+Jinja2 @ file:///croot/jinja2_1741710844255/work
+kiwisolver==1.4.9
+lap==0.5.13
+markdown-it-py @ file:///home/task_176700164333214/croot/markdown-it-py_1767001665856/work
+MarkupSafe @ file:///croot/markupsafe_1738584038848/work
+matplotlib==3.10.8
+mdurl @ file:///home/task_175855215063312/conda-bld/mdurl_1758552166963/work
+mkl-service==2.4.0
+mkl_fft @ file:///io/mkl313/mkl_fft_1730824109137/work
+mkl_random @ file:///io/mkl313/mkl_random_1730823916628/work
+mpmath @ file:///croot/mpmath_1690848262763/work
+networkx @ file:///croot/networkx_1737039604450/work
+numpy @ file:///croot/numpy_and_numpy_base_1708638617955/work/dist/numpy-1.26.4-cp311-cp311-linux_x86_64.whl#sha256=5f96f274d410a1682519282ae769c877d32fdbf171aa8badec7bf5e1d3a1748a
+opencv-python==4.13.0.92
+openvino==2026.0.0
+openvino-telemetry==2025.2.0
+packaging==26.0
+pillow @ file:///croot/pillow_1752524526621/work
+polars==1.38.1
+polars-runtime-32==1.38.1
+psutil==7.2.2
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pydantic @ file:///home/task_176408315465032/conda-bld/pydantic_1764083528036/work
+pydantic-extra-types @ file:///home/task_176830844666810/croot/pydantic-extra-types_1768308468210/work
+pydantic-settings @ file:///home/task_176416489203775/conda-bld/pydantic-settings_1764165138095/work
+pydantic_core @ file:///home/task_176400930864362/conda-bld/pydantic-core_1764009743760/work
+Pygments @ file:///home/task_176243133773609/conda-bld/pygments_1762431407413/work
+pyparsing==3.3.2
+PySocks @ file:///work/ci_py311/pysocks_1676822712504/work
+python-dateutil==2.9.0.post0
+python-dotenv @ file:///home/task_176855924653788/croot/python-dotenv_1768559686959/work
+python-multipart @ file:///home/task_177021303780309/croot/python-multipart_1770213093629/work
+PyYAML @ file:///home/task_176346545528585/conda-bld/pyyaml_1763465495007/work
+requests @ file:///croot/requests_1750426329888/work
+rich @ file:///home/task_176037557380661/conda-bld/rich_1760375627999/work
+rich-toolkit @ file:///home/task_176830852856591/croot/rich-toolkit_1768308593819/work
+scipy==1.17.1
+shellingham @ file:///home/task_176191202301709/conda-bld/shellingham_1761912204592/work
+six==1.17.0
+sniffio @ file:///home/task_176432916829870/conda-bld/sniffio_1764329180133/work
+starlette @ file:///home/task_175691056934898/conda-bld/starlette-recipe_1756910688419/work
+sympy @ file:///croot/sympy_1738108488918/work
+torch==2.0.1
+torchaudio==2.0.2
+torchvision==0.15.2
+triton==2.0.0
+typer==0.20.0
+typer-slim==0.20.0
+typing-inspection @ file:///home/task_176061348755839/conda-bld/typing-inspection_1760614176595/work
+typing_extensions @ file:///croot/typing_extensions_1756280817316/work
+ultralytics==8.4.19
+ultralytics-thop==2.0.18
+urllib3 @ file:///croot/urllib3_1750775463400/work
+uvicorn @ file:///home/task_176822569036668/croot/uvicorn-split_1768226428848/work
+uvloop @ file:///home/task_176217538938473/conda-bld/uvloop_1762175502714/work
+watchfiles @ file:///home/task_176798443124993/croot/watchfiles_1767984618087/work
+websockets @ file:///croot/websockets_1751974421031/work
