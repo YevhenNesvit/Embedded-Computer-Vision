@@ -21,7 +21,7 @@ DEVKIT_IP = "192.168.0.128"
 VIDEO_SOURCE = 0 
 
 # AI Model settings
-MODEL_PATH = 'best_int8_openvino_model' # Mention in README that this is an optimized INT8 model
+MODEL_PATH = 'server/best.engine' # Mention in README that this is an optimized INT8 model
 TARGET_CLASS_ID = 3      # ID for "Tank" / "APC"
 
 # Tracking & Motor Control (PID-like parameters)
