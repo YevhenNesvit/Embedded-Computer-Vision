@@ -17,11 +17,20 @@ app = FastAPI()
 # Hardware IPs
 DEVKIT_IP = "192.168.0.128"
 
-# Video Source: 0 or 1 for USB/FPV UVC Receiver, or "video.mp4" for testing
-VIDEO_SOURCE = 0 
+# Video Settings
+USE_GSTREAMER = False  # True = бойовий режим (Zero-latency), False = звичайний тест
+VIDEO_SOURCE = "video.mp4" # Використовується ТІЛЬКИ якщо USE_GSTREAMER = False
+
+# GStreamer Pipeline для USB-камери на Ubuntu
+GSTREAMER_PIPELINE = (
+    "v4l2src device=/dev/video0 ! "
+    "video/x-raw, width=640, height=480, framerate=30/1 ! "
+    "videoconvert ! appsink drop=true max-buffers=1"
+)
 
 # AI Model settings
-MODEL_PATH = 'server/best.engine' # Mention in README that this is an optimized INT8 model
+# Для GitHub можна залишити шлях до .pt або .onnx, щоб показати логіку
+MODEL_PATH = 'Edge-AI PTZ Surveillance System/server/best.engine'
 TARGET_CLASS_ID = 3      # ID for "Tank" / "APC"
 
 # Tracking & Motor Control (PID-like parameters)
@@ -30,8 +39,8 @@ KP_X = 0.04              # Proportional gain for Pan
 KP_Y = 0.04              # Proportional gain for Tilt
 
 # Depth Estimation Constants (Monocular setup)
-REAL_WIDTH_METERS = 3.0  # Approx real-world width of the target (e.g., APC/Tank)
-FOCAL_LENGTH = 750       # Camera focal length in pixels (requires calibration)
+REAL_WIDTH_METERS = 3.0  # Approx real-world width of the target
+FOCAL_LENGTH = 750      # Camera focal length in pixels (відкалібровано під тестове відео)
 
 # Global State
 current_angle_x = 90
@@ -96,63 +105,68 @@ def vision_thread():
     print("[INFO] Loading optimized AI model...")
     model = YOLO(MODEL_PATH, task='detect')
     
-    print(f"[INFO] Connecting to video source: {VIDEO_SOURCE}...")
-    cap = cv2.VideoCapture(VIDEO_SOURCE)
-    
+    if USE_GSTREAMER:
+        print("[INFO] Connecting to LIVE video via GStreamer (Zero-Latency)...")
+        cap = cv2.VideoCapture(GSTREAMER_PIPELINE, cv2.CAP_GSTREAMER)
+    else:
+        print(f"[INFO] Connecting to test source: {VIDEO_SOURCE}...")
+        cap = cv2.VideoCapture(VIDEO_SOURCE)
+        
     while True:
+        start_time = time.time()
         success, frame = cap.read()
         if not success:
-            if isinstance(VIDEO_SOURCE, str): # Loop if it's a video file
+            if not USE_GSTREAMER and isinstance(VIDEO_SOURCE, str): 
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             else:
                 time.sleep(0.1)
             continue
             
+        # Зменшуємо кадр для стабільного FPS
+        frame = cv2.resize(frame, (640, 480))
         frame_h, frame_w, _ = frame.shape
         center_x, center_y = frame_w // 2, frame_h // 2
         
-        # Draw Crosshair
+        # Малюємо центральний приціл
         cv2.drawMarker(frame, (center_x, center_y), (0, 0, 255), cv2.MARKER_CROSS, 20, 1)
         
-        # AI Inference + ByteTrack (Kalman Filter)
-        results = model.track(frame, persist=True, tracker="bytetrack.yaml", verbose=False)
+        # Трекінг через ByteTrack
+        results = model.track(frame, persist=True, tracker="bytetrack.yaml", conf=0.3, verbose=False)
         target_found = False
         box_cx, box_cy = 0, 0
         
         for r in results:
-            if r.boxes.id is not None:
+            if r.boxes is not None and len(r.boxes) > 0:
                 boxes = r.boxes.xyxy.cpu().numpy()
-                track_ids = r.boxes.id.int().cpu().numpy()
                 classes = r.boxes.cls.int().cpu().numpy()
+                track_ids = r.boxes.id.int().cpu().numpy() if r.boxes.id is not None else [-1] * len(boxes)
                 
                 for box, track_id, cls_id in zip(boxes, track_ids, classes):
+                    # ФІЛЬТР: Шукаємо тільки танк (клас 3)
                     if cls_id == TARGET_CLASS_ID:
                         x1, y1, x2, y2 = box.astype(int)
                         
-                        # Custom Bounding Box
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        # Логіка відображення ID та кольору (помаранчевий - пошук, зелений - захоплення)
+                        display_id = track_id if track_id != -1 else "--"
+                        color = (0, 255, 0) if track_id != -1 else (0, 165, 255) 
                         
-                        # Distance Estimation
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                        
                         pixel_width = x2 - x1
-                        if pixel_width > 0:
-                            distance = (REAL_WIDTH_METERS * FOCAL_LENGTH) / pixel_width
-                        else:
-                            distance = 0.0
+                        distance = (REAL_WIDTH_METERS * FOCAL_LENGTH) / pixel_width if pixel_width > 0 else 0.0
                         
-                        box_cx = (x1 + x2) // 2
-                        box_cy = (y1 + y2) // 2
-                        target_found = True
-                        
-                        # Custom HUD Text with Background
-                        text = f"TGT ID:{track_id} | DIST:{distance:.1f}m"
+                        text = f"TGT ID:{display_id} | DIST:{distance:.1f}m"
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         (text_w, text_h), _ = cv2.getTextSize(text, font, 0.6, 2)
                         cv2.rectangle(frame, (x1, y1 - text_h - 10), (x1 + text_w, y1), (0, 0, 0), -1)
                         cv2.putText(frame, text, (x1, y1 - 5), font, 0.6, (0, 255, 255), 2)
                         
-                        break # Lock onto the first detected target
+                        box_cx = (x1 + x2) // 2
+                        box_cy = (y1 + y2) // 2
+                        target_found = True
+                        
+                        break # Ведемо одну пріоритетну ціль
 
-        # Auto-Tracking Logic
         if target_found:
             cv2.line(frame, (center_x, center_y), (box_cx, box_cy), (0, 255, 0), 1)
             
@@ -173,23 +187,27 @@ def vision_thread():
             if need_move:
                 send_movement_command(current_angle_x, current_angle_y)
 
-        # Encode frame for web streaming
-        _, buffer = cv2.imencode('.jpg', frame)
+        # Стискаємо JPEG для ідеальної передачі у браузер
+        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
         latest_jpeg = buffer.tobytes()
+        
+        # Балансувальник FPS для тестового відео
+        elapsed = time.time() - start_time
+        if not USE_GSTREAMER:
+            time.sleep(max(0.001, 0.033 - elapsed))
 
-# Start the vision processing thread
+# Запуск потоку обробки відео
 threading.Thread(target=vision_thread, daemon=True).start()
 
 # ==========================================
 # ASYNC WEB SERVER ROUTES
 # ==========================================
 async def video_generator():
-    """Yields the latest processed frame to the web client."""
     while True:
         if latest_jpeg is not None:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + latest_jpeg + b'\r\n')
-        await asyncio.sleep(0.03) # Cap at ~30 FPS
+        await asyncio.sleep(0.03)
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
