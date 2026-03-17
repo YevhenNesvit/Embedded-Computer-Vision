@@ -20,6 +20,8 @@ DEVKIT_IP = "192.168.0.128"
 # Video Settings
 USE_GSTREAMER = False  # True = бойовий режим (Zero-latency), False = звичайний тест
 VIDEO_SOURCE = "video.mp4" # Використовується ТІЛЬКИ якщо USE_GSTREAMER = False
+# VIDEO_SOURCE = 0                                  # 2. Локальна USB-камера / UVC приймач
+# VIDEO_SOURCE = "http://192.168.0.116"   # 3. ESP32-CAM MJPEG Stream (Wireless FPV)
 
 # GStreamer Pipeline для USB-камери на Ubuntu
 GSTREAMER_PIPELINE = (
