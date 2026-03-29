@@ -5,6 +5,7 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
+#include "httplib.h"
 
 using namespace cv;
 using namespace dnn;
@@ -21,6 +22,41 @@ vector<int> shared_class_ids;
 vector<float> shared_confidences;
 
 atomic<bool> is_running(true);
+
+// --- НАЛАШТУВАННЯ ТУРЕЛІ ---
+const string DEVKIT_IP = "192.168.0.128"; // Твій IP для ESP32/STM32
+auto last_request_time = chrono::steady_clock::now();
+mutex http_mutex;
+
+// Асинхронна функція відправки команд (аналог твого Python-коду)
+void send_movement_command(int x, int y) {
+    auto now = chrono::steady_clock::now();
+    chrono::duration<double> elapsed = now - last_request_time;
+
+    // Rate limiting: 10Hz (не частіше ніж раз на 0.1 сек)
+    if (elapsed.count() < 0.1) {
+        return; 
+    }
+    last_request_time = now;
+
+    // Створюємо "демон"-потік, який відправить запит і сам закриється
+    thread([x, y]() {
+        httplib::Client cli(DEVKIT_IP.c_str(), 80);
+        
+        // Таймаут 0.2 сек (200 мілісекунд), як у твоєму Python коді
+        cli.set_connection_timeout(0, 200000); 
+        cli.set_read_timeout(0, 200000);
+
+        string path = "/move?x=" + to_string(x) + "&y=" + to_string(y);
+        
+        // Відправляємо GET-запит. Якщо ESP32 "впала" - просто ігноруємо помилку
+        if (auto res = cli.Get(path)) {
+            // Успіх
+        } else {
+            // Fail silently
+        }
+    }).detach(); // detach() - це аналог daemon=True
+}
 
 // --- ПОТІК 2: ШТУЧНИЙ ІНТЕЛЕКТ ---
 void ai_thread_func(Net& net) {
@@ -153,6 +189,22 @@ int main() {
             rectangle(frame, box, color, 2);
             string label = "CLS: " + to_string(cls) + " | " + to_string(int(conf * 100)) + "%";
             putText(frame, label, Point(box.x, box.y - 10), FONT_HERSHEY_SIMPLEX, 0.6, color, 2);
+        }
+
+        // --- ЛОГІКА АВТОТРЕКІНГУ ---
+        // Якщо ми бачимо хоча б один об'єкт - беремо перший (найбільш впевнений)
+        if (!local_boxes.empty()) {
+            Rect target = local_boxes[0]; 
+            
+            // Рахуємо центр рамки (це і є наша ціль)
+            int center_x = target.x + target.width / 2;
+            int center_y = target.y + target.height / 2;
+            
+            // Відправляємо асинхронну команду на турель!
+            send_movement_command(center_x, center_y);
+
+            // (Опціонально) Малюємо приціл по центру цілі
+            circle(frame, Point(center_x, center_y), 5, Scalar(0, 0, 255), -1);
         }
 
         imshow("Tactical HUD C++", frame);
